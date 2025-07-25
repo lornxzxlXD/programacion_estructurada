@@ -1,7 +1,6 @@
 import funciones
-import conexionBD
 from usuarios import usuario
-from notas import nota 
+from notas import nota
 import getpass
 
 def main():
@@ -16,22 +15,28 @@ def main():
             nombre=input("\t ¿Cual es tu nombre?: ").upper().strip()
             apellidos=input("\t ¿Cuales son tus apellidos?: ").upper().strip()
             email=input("\t Ingresa tu email: ").lower().strip()
-            password=input("\t Ingresa tu contraseña: ").strip()
+            #password=input("\t Ingresa tu contraseña: ").strip()
+            password=getpass.getpass("\t ingresa tu contraseña: ").strip
             #Agregar codigo
             lista_usuario=usuario.registrar(nombre,apellidos,email,password)
-            registro=usuario.registrar(nombre,apellidos,email,password)
-            if lista_usuario:
-                print(f"{nombre} {apellidos} se registro correctamente, con el email:{email}")
+            if lista_usuario==True:
+                print(f"\n\t{nombre} {apellidos} se registro correctamente, con el email: {email}")
             else:
-                print(f"\n\t No fue posible registrar el usuario intentalo mas tarde")  
+                print (f"\n\t No fue posible registrar el usuario intentalo mas tarde ")
             funciones.esperarTecla()
         elif opcion=="2" or opcion=="LOGIN": 
             funciones.borrarPantalla()
             print("\n \t ..:: Inicio de Sesión ::.. ")     
             email=input("\t Ingresa tu E-mail: ").lower().strip()
-            password=input("\t Ingresa tu contraseña: ").strip()
-            #Agregar codigo 
-            menu_notas(19,"Dago","Fiscal")
+            #password=input("\t Ingresa tu contraseña: ").strip()
+            password=getpass.getpass("\t ingresa tu contraseña: ").strip
+            #Agregar codigo
+            lista_usuario=usuario.inicio_sesion(email,password)
+            if lista_usuario:
+                menu_notas(lista_usuario[0],lista_usuario[1],lista_usuario[2])
+            else:
+                print(f"E-mail y/o contraseña incorrectos por favor verifica y vuelve a intentar")
+                funciones.esperarTecla()
               
         elif opcion=="3" or opcion=="SALIR": 
             print("Termino la Ejecución del Sistema")
@@ -41,7 +46,7 @@ def main():
             print("Opcion no valida")
             opcion=True
             funciones.esperarTecla() 
-
+ 
 def menu_notas(usuario_id,nombre,apellidos):
     while True:
         funciones.borrarPantalla()
@@ -50,28 +55,77 @@ def menu_notas(usuario_id,nombre,apellidos):
 
         if opcion == '1' or opcion=="CREAR":
             funciones.borrarPantalla()
-            print(f"\n \t .:: Crear Nota ::. ")
+            print(f"\n\t .:: Crear Nota ::. ")
             titulo=input("\tTitulo: ")
             descripcion=input("\tDescripción: ")
             #Agregar codigo
+            resultado=nota.crear(usuario_id,titulo,descripcion)
+            if resultado:
+                print(f"\n\t Se creo satisfactoriamente la nota {titulo}")
+            else:
+                print(f"\n\t No fue posible crear la nota en este momento")
             funciones.esperarTecla()    
         elif opcion == '2' or opcion=="MOSTRAR":
             funciones.borrarPantalla()
-            #Agregar codigo  
+            #Agregar codigo 
+            lista_notas=nota.mostrar
+            if len(lista_notas)>0:
+                print(f"\n\tMOSTRAR NOTAS")
+                print(f"{'ID':<10}{'Titulo':<15}{'Descripcion':<15} {'Fecha':<15}")
+                print(f"{'-'*80}")
+                for fila in lista_notas:
+                    print(f"{fila[0]:<10} {fila[2]:<15} {fila[3]:<15} {fila[4]} ")
+
+            else:
+                print("\n\t...No existen notas para mostrar a este usuario") 
+
+                
             funciones.esperarTecla()
         elif opcion == '3' or opcion=="CAMBIAR":
             funciones.borrarPantalla()
-            print(f"\n \t .:: {nombre} {apellidos}, vamos a modificar un Nota ::. \n")
-            id = input("\t \t ID de la nota a actualizar: ")
-            titulo = input("\t Nuevo título: ")
-            descripcion = input("\t Nueva descripción: ")
-            #Agregar codigo
-            funciones.esperarTecla()      
+            lista_notas=nota.mostrar(usuario_id) 
+            if len(lista_notas)>0:
+               print(f"\n\tMostrar las Notas")
+               print(f"{'ID':<10}{'Titulo':<15}{'Descripción':<20}{'Fecha':<15}")
+               print(f"-"*80)
+               for fila in lista_notas:
+                  print(f"{fila[0]:<10}{fila[2]:<15}{fila[3]:<20}   {fila[4]}")
+               print(f"-"*80)
+               resp=input("¿Deseas modificar alguna nota? (Si/No): ").lower().strip()
+               if resp=="si":
+                    print(f"\n \t .:: {nombre} {apellidos}, vamos a modificar un Nota ::. \n")
+                    id = input("\t \t ID de la nota a actualizar: ")
+                    titulo = input("\t Nuevo título: ")
+                    descripcion = input("\t Nueva descripción: ")
+                    #Agregar codigo
+                    respuesta=nota.cambiar(id,titulo,descripcion)
+                    if respuesta:
+                        print(f"\n\t Se actualizo correctamente la nota {titulo}")
+                    else:
+                        print(f"\n\t .. No fue posible actualizar la nota es este momento intentelo de nuevo...")  
+                    funciones.esperarTecla() 
+            else:
+                print("\n\t..No existen notas para este usuario ..")
         elif opcion == '4' or opcion=="ELIMINAR":
             funciones.borrarPantalla()
             print(f"\n \t .:: {nombre} {apellidos}, vamos a borrar un Nota ::. \n")
             id = input("\t \t ID de la nota a eliminar: ")
             #Agregar codigo
+            lista_notas=nota.mostrar(usuario_id) 
+            if len(lista_notas)>0:
+               print(f"\n\tMostrar las Notas")
+               print(f"{'ID':<10}{'Titulo':<15}{'Descripción':<20}{'Fecha':<15}")
+               print(f"-"*80)
+               for fila in lista_notas:
+                  print(f"{fila[0]:<10}{fila[2]:<15}{fila[3]:<20}   {fila[4]}")
+               print(f"-"*80)
+               resp=input("¿Deseas borrar alguna nota? (Si/No): ").lower().strip()
+            if resp=="si":
+              respuesta=nota.borrar(id)
+              if respuesta==True:
+                    print(f"\n\tse borro la nota {id} exitosamente")
+              else:
+                    print(f"\n\t..No es posible borrar la nota en este momento vuelve a intentarlo...")
             funciones.esperarTecla()    
         elif opcion == '5' or opcion=="SALIR":
             break
